@@ -1,0 +1,531 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+/* Reseteo los márgenes de todos los elementos para que se vea igual en todos los navegadores y defino la fuente principal */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f3f4f6;
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; }
+
+/* Para la barra de navegación uso un gradiente lineal que va de rosa a naranja para imitar la marca de Tinder */
+.navbar {
+    background: linear-gradient(90deg, #fd267a 0%, #ff6036 100%);
+    box-shadow: 0 4px 15px rgba(253, 38, 122, 0.15);
+    padding: 0.8rem 1rem;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+    color: white !important;
+}
+
+/* Efecto hover en los enlaces del menú para que se muevan un poco hacia arriba y brillen al pasar el ratón */
+.nav-link {
+    color: rgba(255,255,255,0.85) !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-left: 15px;
+    transition: color 0.3s, transform 0.2s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: white !important;
+    transform: translateY(-1px);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Esta es la tarjeta principal de descubrir gente. Le pongo un ancho máximo fijo para simular la pantalla de un móvil */
+.card-tinder {
+    width: 100%;
+    max-width: 450px;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-imagen {
+    height: 420px;
+    width: 100%;
+    background-color: #e0e0e0;
+    position: relative;
+}
+
+/* Uso object-fit cover para que la foto ocupe todo el espacio asignado sin deformarse ni estirarse */
+.card-imagen img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.card-body-content {
+    padding: 20px 25px 10px 25px;
+    background: white;
+    text-align: left;
+}
+
+.card-body-content h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-body-content h2 span.age {
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: #888;
+}
+
+/* Este truco de webkit-line-clamp sirve para que si la biografía es muy larga se corte en la tercera línea y ponga puntos suspensivos */
+.bio-text {
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.5;
+    margin-top: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Uso flexbox para centrar y separar los botones de like y dislike */
+.card-acciones-container {
+    padding: 15px 0 25px 0;
+    background: white;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.btn-action-big {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Al pasar el ratón los botones crecen un poco para dar feedback visual */
+.btn-action-big:hover {
+    transform: scale(1.15);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.btn-dislike { color: #fd267a; border: 1px solid #ffeef4; }
+.btn-like { color: #2ecc71; border: 1px solid #eafff2; }
+
+
+/* Para la lista de matches uso CSS Grid porque es más fácil hacer una cuadrícula responsive que se adapte al ancho */
+.match-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px;
+    padding-bottom: 50px;
+}
+
+.card-match {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Efecto de elevación al pasar el ratón por encima de un match */
+.card-match:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(253, 38, 122, 0.15);
+}
+
+.match-img-container {
+    height: 250px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.match-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+/* Pequeño zoom en la foto al hacer hover en la tarjeta */
+.card-match:hover .match-img-container img {
+    transform: scale(1.05);
+}
+
+.card-match-body {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.match-bio {
+    font-size: 0.9rem;
+    color: #777;
+    flex-grow: 1;
+    margin-bottom: 20px;
+}
+
+.profile-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+}
+
+/* Personalizo los inputs para quitar el borde por defecto y ponerles uno más suave redondeado */
+.form-control-modern {
+    background: #fcfcfc;
+    border: 1px solid #ececec;
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.3s;
+    outline: none;
+    color: #333;
+}
+
+.form-control-modern:focus {
+    background: white;
+    border-color: #fd267a;
+    box-shadow: 0 0 0 4px rgba(253, 38, 122, 0.05);
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #444;
+    margin-bottom: 8px;
+    margin-top: 15px;
+    display: block;
+}
+
+/* Convierto el input de tipo file en un recuadro punteado para que sea más intuitivo subir fotos */
+.custom-file-upload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    cursor: pointer;
+    border-radius: 12px;
+    background-color: #fafafa;
+    color: #555;
+    border: 2px dashed #ddd;
+    font-weight: 600;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.custom-file-upload:hover {
+    background-color: #fff5f8;
+    border-color: #fd267a;
+    color: #fd267a;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #999;
+}
+
+.badge-interest {
+    background-color: #f0f2f5;
+    color: #333;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Layout del chat: uso flex column para que ocupe el alto de la pantalla y el input se quede abajo */
+.chat-container {
+    max-width: 600px;
+    margin: 80px auto 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+}
+
+.chat-header {
+    background: white;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 10;
+}
+
+.chat-user-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #333;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    flex-grow: 1;
+}
+
+.chat-user-link:hover {
+    opacity: 0.7;
+    color: #fd267a;
+}
+
+.chat-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Área de mensajes con scroll automático si hay mucho texto */
+.chat-messages {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #f7f9fc;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    position: relative;
+    word-wrap: break-word;
+}
+
+/* Estilo para los mensajes que recibo alineados a la izquierda y en blanco */
+.message-received {
+    align-self: flex-start;
+    background: white;
+    color: #333;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Estilo para los mensajes que envío yo alineados a la derecha y con el color de la marca */
+.message-sent {
+    align-self: flex-end;
+    background: linear-gradient(90deg, #fd267a, #ff6036);
+    color: white;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 10px rgba(253, 38, 122, 0.2);
+}
+
+.message-time {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 4px;
+    text-align: right;
+    display: block;
+}
+
+.chat-input-area {
+    padding: 15px;
+    background: white;
+    border-top: 1px solid #f0f0f0;
+}
+
+.input-group-chat {
+    display: flex;
+    gap: 10px;
+}
+
+.input-chat {
+    flex-grow: 1;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    padding: 12px 20px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.input-chat:focus {
+    border-color: #fd267a;
+}
+
+.btn-send {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #fd267a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-send:hover {
+    transform: scale(1.1);
+}
+
+.share-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+.share-title {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-share {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin: 0 10px;
+    font-size: 1.5rem;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-share:hover {
+    transform: translateY(-3px);
+    color: white;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+.btn-whatsapp {
+    background: #25D366;
+}
+
+.btn-email {
+    background: #888;
+}
+
+/* Contenedor de filtros con scroll horizontal oculto para que quepan todos los intereses en el móvil */
+.filters-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px 5px;
+    margin-bottom: 20px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.filters-container::-webkit-scrollbar {
+    display: none;
+}
+
+.filter-chip {
+    display: inline-block;
+    padding: 8px 20px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    color: #555;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-right: 10px;
+    transition: all 0.3s;
+}
+
+.filter-chip:hover {
+    background: #f0f0f0;
+    color: #333;
+    transform: translateY(-2px);
+}
+
+.filter-chip.active {
+    background: #fd267a;
+    color: white;
+    border-color: #fd267a;
+    box-shadow: 0 4px 10px rgba(253, 38, 122, 0.3);
+}
+
+/* Botón discreto para deshacer el match que solo se pone rojo al pasar el ratón */
+.btn-unmatch {
+    margin-top: 10px;
+    background-color: transparent;
+    border: 2px solid #eee;
+    color: #999;
+    border-radius: 50px;
+    padding: 8px 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    width: 100%;
+    display: block;
+}
+
+.btn-unmatch:hover {
+    border-color: #fd267a;
+    color: #fd267a;
+    background-color: #fff5f8;
+    box-shadow: 0 5px 15px rgba(253, 38, 122, 0.15);
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.btn-unmatch i {
+    margin-right: 5px;
+    transition: transform 0.3s;
+}
+
+.btn-unmatch:hover i {
+    transform: rotate(90deg);
+}

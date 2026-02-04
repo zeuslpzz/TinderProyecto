@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Usuarios - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f3f4f6; }
+        .admin-card { background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 30px; margin-top: 40px; margin-bottom: 50px; }
+        .table-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .badge-admin { background-color: #fd267a; color: white; }
+        .badge-user { background-color: #888; color: white; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#"><i class="fas fa-user-shield"></i> Panel Admin</a>
+        <div class="d-flex">
+            <a th:href="@{/}" class="btn btn-outline-light btn-sm">Volver a la App</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="admin-card">
+        <h2 class="mb-4 fw-bold">Gestión de Usuarios</h2>
+
+        <div th:if="${param.deleted}" class="alert alert-danger fade show"><i class="fas fa-trash me-2"></i> Usuario eliminado.</div>
+        <div th:if="${param.edited}" class="alert alert-success fade show"><i class="fas fa-check-circle me-2"></i> Usuario actualizado.</div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Email</th>
+                    <th>Interés</th>
+                    <th>Roles</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="u : ${listaUsuarios}">
+                    <td th:text="${u.id}">1</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img th:src="${u.avatar != null ? '/file/download/' + u.avatar : '/img/logo-mini.png'}" class="table-avatar me-2">
+                            <span th:text="${u.name}" class="fw-bold">Nombre</span>
+                        </div>
+                    </td>
+                    <td th:text="${u.email}">correo@test.com</td>
+                    <td><span class="badge bg-light text-dark border" th:text="${u.interes}">Gamer</span></td>
+                    <td>
+                        <th:block th:each="rol : ${u.roles}">
+                                <span th:class="${rol.name == 'ROLE_ADMIN'} ? 'badge badge-admin' : 'badge badge-user'"
+                                      th:text="${rol.name == 'ROLE_ADMIN'} ? 'ADMIN' : 'USER'">USER</span>
+                        </th:block>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <form th:action="@{'/admin/toggle-role/' + ${u.id}}" method="post">
+                                <button class="btn btn-sm btn-outline-primary" title="Cambiar Rol"><i class="fas fa-crown"></i></button>
+                            </form>
+                            <a th:href="@{'/admin/editar/' + ${u.id}}" class="btn btn-sm btn-outline-warning" title="Editar"><i class="fas fa-edit"></i></a>
+                            <form th:action="@{'/admin/delete/' + ${u.id}}" method="post" onsubmit="return confirm('¿Seguro que quieres eliminar?');">
+                                <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
