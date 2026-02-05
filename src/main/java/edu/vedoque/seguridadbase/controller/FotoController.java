@@ -1,16 +1,19 @@
 package edu.vedoque.seguridadbase.controller;
 
 import edu.vedoque.seguridadbase.entity.Foto;
+import edu.vedoque.seguridadbase.entity.LikeFoto;
 import edu.vedoque.seguridadbase.entity.User;
 import edu.vedoque.seguridadbase.repository.FotoRepository;
 import edu.vedoque.seguridadbase.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication; // Importante
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/foto")
@@ -34,18 +37,26 @@ public class FotoController {
 
         if (foto != null && usuarioLogueado != null) {
 
-            // Compruebo si ya le dio like
-            if (foto.isLikedBy(usuarioLogueado)) {
-                // Si ya tiene like quito el like
-                // Buscamos el objeto usuario dentro del set para borrarlo correctamente
-                foto.getUsuariosLikes().removeIf(u -> u.getId().equals(usuarioLogueado.getId()));
-                foto.setLikes(foto.getLikes() - 1); // Bajamos contador
+            // Buscamos en la lista si ya existe el like
+            Optional<LikeFoto> likeExistente = foto.getLikesRecibidos().stream()
+                    .filter(like -> like.getUsuario().getId().equals(usuarioLogueado.getId()))
+                    .findFirst();
+
+            if (likeExistente.isPresent()) {
+                // SI YA TIENE LIKE: Lo quitamos
+                foto.getLikesRecibidos().remove(likeExistente.get());
+                foto.setLikes(Math.max(0, foto.getLikes() - 1));
             } else {
-                foto.getUsuariosLikes().add(usuarioLogueado);
-                foto.setLikes(foto.getLikes() + 1); // Subimos contador
+                // SI NO TIENE LIKE: Creamos el nuevo like
+                // CORRECCIÓN: Usamos el constructor con parámetros que ya tienes definido
+                LikeFoto nuevoLike = new LikeFoto(usuarioLogueado, foto);
+
+                // Lo añadimos a la lista
+                foto.getLikesRecibidos().add(nuevoLike);
+                foto.setLikes(foto.getLikes() + 1);
             }
 
-            // Guardamos cambios
+            // Guardamos la foto (y por cascada se actualizan los likes)
             fotoRepository.save(foto);
         }
 

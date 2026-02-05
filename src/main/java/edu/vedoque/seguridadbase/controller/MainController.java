@@ -20,9 +20,11 @@ import java.util.stream.Collectors;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Collections;
 
-// Este es el controlador principal que maneja la navegación pública y el perfil del usuario
 @Controller
 public class MainController {
 
@@ -39,13 +41,30 @@ public class MainController {
     @Autowired
     private FileProcessingService fileProcessingService;
 
-    // Defino esta lista fija aquí para usarla luego en los desplegables de filtros
-    private final List<String> LISTA_INTERESES = Arrays.asList(
+    // Lista base por defecto
+    private final List<String> INTERESES_BASE = Arrays.asList(
             "Deportista", "Cinéfilo", "Gamer", "Viajero", "Músico",
             "Lector", "Aventurero", "Tranquilo"
     );
 
-    // Este método carga la página de inicio y se encarga de buscar un candidato adecuado para mostrar
+    //Metodo para obtener todas las etiquetas de la bd actualizada
+    private List<String> obtenerInteresesCombinados() {
+        // Obtener los intereses que están usando los usuarios en la BD
+        List<String> interesesEnUso = userRepository.findAllIntereses();
+
+        //Crear un set combinando los base y los de la BD set evita duplicados automáticamente
+        Set<String> conjuntoTotal = new HashSet<>(INTERESES_BASE);
+        if (interesesEnUso != null) {
+            conjuntoTotal.addAll(interesesEnUso);
+        }
+
+        //Convertir a lista y ordenar alfabéticamente para que se vea bien
+        List<String> listaFinal = new ArrayList<>(conjuntoTotal);
+        Collections.sort(listaFinal);
+
+        return listaFinal;
+    }
+
     @GetMapping("/")
     public String index(@RequestParam(value="filtro", required=false) String filtro, Model model, Authentication auth) {
 
@@ -56,7 +75,6 @@ public class MainController {
 
         List<User> todos = userRepository.findAll();
 
-        // Busco a los administradores para excluirlos de la lista de gente que se puede conocer
         Role rolAdmin = roleRepository.findByName("ROLE_ADMIN");
         List<UserRole> relacionesAdmin = userRoleRepository.findByRole(rolAdmin);
         List<Long> idsAdmins = relacionesAdmin.stream()
@@ -65,7 +83,6 @@ public class MainController {
 
         User candidato = null;
 
-        // Si estoy logueado filtro la lista para no mostrarme a mi mismo ni a los admins ni a la gente con la que ya he interactuado
         if (logueado != null) {
             User finalLogueado = logueado;
             candidato = todos.stream()
@@ -77,7 +94,6 @@ public class MainController {
                     .findFirst()
                     .orElse(null);
         } else {
-            // Si no estoy logueado muestro un usuario aleatorio que no sea admin para invitar al registro
             Collections.shuffle(todos);
             candidato = todos.stream()
                     .filter(u -> !idsAdmins.contains(u.getId()))
@@ -88,27 +104,38 @@ public class MainController {
         }
 
         model.addAttribute("usuarioCandidato", candidato);
-        model.addAttribute("listaIntereses", LISTA_INTERESES);
+
+        // MODIFICADO: Ahora usamos la lista dinámica
+        model.addAttribute("listaIntereses", obtenerInteresesCombinados());
+
         model.addAttribute("filtroActivo", filtro);
 
         return "index";
     }
 
-    // Muestro la página de edición de perfil cargando los datos del usuario actual
     @GetMapping("/perfil")
     public String perfil(Model model, Authentication auth) {
         User user = userService.findByEmail(auth.getName());
         model.addAttribute("user", user);
-        model.addAttribute("listaIntereses", LISTA_INTERESES);
+
+        // MODIFICADO: También en perfil para que vean las etiquetas creadas por otros
+        List<String> listaTotal = obtenerInteresesCombinados();
+        model.addAttribute("listaIntereses", listaTotal);
+
+        boolean esCustom = user.getInteres() != null && !listaTotal.contains(user.getInteres());
+        // Nota: Si acabamos de añadir el interés a la lista "oficial" vía BD, esCustom será false,
+        // lo cual es correcto porque ya aparecerá en el desplegable.
+        model.addAttribute("esInteresCustom", esCustom);
+
         return "perfil";
     }
 
-    // Recibo los datos del formulario de perfil incluyendo la foto de avatar y las fotos de la galería
     @PostMapping("/subir/fotos")
     public String subirFotos(@RequestParam("avatarFile") MultipartFile avatarFile,
                              @RequestParam("galeriaFiles") MultipartFile[] galeriaFiles,
                              @RequestParam("biografia") String biografia,
-                             @RequestParam("interes") String interes,
+                             @RequestParam(value = "interesSeleccion", required = false) String interesSeleccion,
+                             @RequestParam(value = "interesNuevo", required = false) String interesNuevo,
                              @RequestParam(value = "edad", required = false) Integer edad,
                              @RequestParam(value = "ubicacion", required = false) String ubicacion,
                              Authentication auth) {
@@ -116,31 +143,40 @@ public class MainController {
         User user = userService.findByEmail(auth.getName());
 
         user.setBiografia(biografia);
-        user.setInteres(interes);
         user.setEdad(edad);
         user.setUbicacion(ubicacion);
 
-        // Si han subido un avatar nuevo lo guardo usando el servicio de ficheros y actualizo el nombre en el usuario
+        String interesFinal = null;
+
+        if ("OTRO".equals(interesSeleccion) && interesNuevo != null && !interesNuevo.trim().isEmpty()) {
+            interesFinal = interesNuevo;
+        } else if (esInteresPersonalizado(interesSeleccion, interesNuevo)) {
+            interesFinal = interesNuevo;
+        } else {
+            interesFinal = interesSeleccion;
+        }
+
+        if ("OTRO".equals(interesFinal)) interesFinal = null;
+
+        user.setInteres(interesFinal);
+
         if (!avatarFile.isEmpty()) {
             String imgName = "avatar-" + user.getId() + "-" + System.currentTimeMillis() + ".png";
             fileProcessingService.uploadFile(avatarFile, imgName);
             user.setAvatar(imgName);
         }
 
-        // Recorro todas las fotos de la galería que hayan subido y creo un objeto Foto para cada una
         if (galeriaFiles != null && galeriaFiles.length > 0) {
             for (MultipartFile fichero : galeriaFiles) {
                 if (!fichero.isEmpty()) {
                     String fileName = "galeria-" + user.getId() + "-" + System.currentTimeMillis() + ".png";
                     fileProcessingService.uploadFile(fichero, fileName);
 
-                    // Creo la entidad foto y la relaciono con el usuario
                     Foto nuevaFoto = new Foto();
                     nuevaFoto.setNombreArchivo(fileName);
                     nuevaFoto.setUsuario(user);
                     nuevaFoto.setLikes(0);
 
-                    // La añado a la lista de fotos del usuario
                     user.getFotosGaleria().add(nuevaFoto);
                 }
             }
@@ -150,34 +186,30 @@ public class MainController {
         return "redirect:/perfil?success";
     }
 
-    // Elimino una foto concreta de la galería del usuario buscando por su id
+    private boolean esInteresPersonalizado(String seleccion, String nuevo) {
+        return (seleccion == null || seleccion.isEmpty()) && (nuevo != null && !nuevo.isEmpty());
+    }
+
     @PostMapping("/perfil/eliminar-foto")
     public String eliminarFoto(@RequestParam("idFoto") Long idFoto, Authentication auth) {
         User user = userService.findByEmail(auth.getName());
-
-        // Uso una expresión lambda para borrar la foto de la lista si coincide el id
         user.getFotosGaleria().removeIf(f -> f.getId().equals(idFoto));
-
         userService.save(user);
         return "redirect:/perfil";
     }
 
-    // Muestro el perfil público de otro usuario para que se pueda ver su detalle antes de dar like o dislike
     @GetMapping("/usuario/{id}")
     public String verUsuarioPublico(@PathVariable("id") Long id, Model model, Authentication auth) {
         User logueado = userService.findByEmail(auth.getName());
         User usuario = userService.findById(id);
 
-        // Si intento ver mi propio perfil público me redirijo a mi edición de perfil
         if (logueado.getId().equals(usuario.getId())) {
             return "redirect:/perfil";
         }
 
         model.addAttribute("usuario", usuario);
-        // Paso mi usuario a la vista para poder comprobar si ya he dado like a alguna foto
         model.addAttribute("miUsuario", logueado);
 
-        // Compruebo si hay match mutuo o si ya le he dado like para pintar los botones de forma diferente
         boolean hayMatch = matchActionRepository.countLikesRecibidos(logueado, usuario) > 0 &&
                 matchActionRepository.countLikesRecibidos(usuario, logueado) > 0;
 

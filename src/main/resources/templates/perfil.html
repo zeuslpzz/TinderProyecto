@@ -12,7 +12,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/}"><i class="fas fa-fire"></i> Tinder App</a>
+        <a class="navbar-brand" th:href="@{/}"><i class="fas fa-fire"></i> Tinder Cesur</a>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link" th:href="@{/}">Descubrir</a></li>
@@ -60,10 +60,17 @@
 
             <div class="mb-3">
                 <label class="form-label">Tu etiqueta principal</label>
-                <select name="interes" class="form-control-modern form-select">
+                <select id="selectInteres" name="interesSeleccion" class="form-control-modern form-select" onchange="toggleNuevoInteres()">
                     <option value="" disabled th:selected="${user.interes == null}">Selecciona tu pasión...</option>
                     <option th:each="opcion : ${listaIntereses}" th:value="${opcion}" th:text="${opcion}" th:selected="${user.interes == opcion}"></option>
+                    <option value="OTRO" th:selected="${esInteresCustom}">Crear nuevo...</option>
                 </select>
+
+                <div id="divNuevoInteres" class="mt-2" th:style="${esInteresCustom} ? 'display:block' : 'display:none'">
+                    <input type="text" name="interesNuevo" class="form-control-modern"
+                           placeholder="Escribe tu propio interés (ej: Astrólogo)"
+                           th:value="${esInteresCustom} ? ${user.interes} : ''">
+                </div>
             </div>
 
             <div class="mb-4">
@@ -107,6 +114,20 @@
             var reader = new FileReader();
             reader.onload = function (e) { document.getElementById('avatarPreview').src = e.target.result; }
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function toggleNuevoInteres() {
+        var select = document.getElementById("selectInteres");
+        var divInput = document.getElementById("divNuevoInteres");
+        var input = divInput.querySelector("input");
+
+        if (select.value === "OTRO") {
+            divInput.style.display = "block";
+            input.focus();
+        } else {
+            divInput.style.display = "none";
+            input.value = ""; // Limpiar si elige uno de la lista
         }
     }
 </script>
