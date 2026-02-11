@@ -7,6 +7,8 @@ import edu.vedoque.seguridadbase.repository.UserRepository;
 import edu.vedoque.seguridadbase.service.FileProcessingService;
 import edu.vedoque.seguridadbase.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,9 +39,12 @@ public class MainController {
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
+    private JavaMailSender emailSender;
+    @Autowired
     private UserRoleRepository userRoleRepository;
     @Autowired
     private FileProcessingService fileProcessingService;
+
 
     // Lista base por defecto
     private final List<String> INTERESES_BASE = Arrays.asList(
@@ -51,20 +56,17 @@ public class MainController {
     private List<String> obtenerInteresesCombinados() {
         // Obtener los intereses que están usando los usuarios en la BD
         List<String> interesesEnUso = userRepository.findAllIntereses();
-
         //Crear un set combinando los base y los de la BD set evita duplicados automáticamente
         Set<String> conjuntoTotal = new HashSet<>(INTERESES_BASE);
         if (interesesEnUso != null) {
             conjuntoTotal.addAll(interesesEnUso);
         }
-
         //Convertir a lista y ordenar alfabéticamente para que se vea bien
         List<String> listaFinal = new ArrayList<>(conjuntoTotal);
         Collections.sort(listaFinal);
-
         return listaFinal;
     }
-
+    // Página Principal el feed
     @GetMapping("/")
     public String index(@RequestParam(value="filtro", required=false) String filtro, Model model, Authentication auth) {
 
@@ -74,7 +76,7 @@ public class MainController {
         }
 
         List<User> todos = userRepository.findAll();
-
+        // Identificamos a los Admins para no mostrarlos
         Role rolAdmin = roleRepository.findByName("ROLE_ADMIN");
         List<UserRole> relacionesAdmin = userRoleRepository.findByRole(rolAdmin);
         List<Long> idsAdmins = relacionesAdmin.stream()
@@ -85,11 +87,14 @@ public class MainController {
 
         if (logueado != null) {
             User finalLogueado = logueado;
+            // ALGORITMO DE SELECCIÓN DE CANDIDATO
             candidato = todos.stream()
                     .filter(u -> !u.getId().equals(finalLogueado.getId()))
                     .filter(u -> !idsAdmins.contains(u.getId()))
                     .filter(u -> !u.getEmail().equals("admin@admin.com"))
+                    // Que no le haya dado like o dislike ya
                     .filter(u -> matchActionRepository.findByEmisorAndReceptor(finalLogueado, u).isEmpty())
+                    // Filtro por interés si está activo
                     .filter(u -> filtro == null || filtro.isEmpty() || (u.getInteres() != null && u.getInteres().equals(filtro)))
                     .findFirst()
                     .orElse(null);
@@ -112,24 +117,19 @@ public class MainController {
 
         return "index";
     }
-
+    // Ver y Editar Perfil
     @GetMapping("/perfil")
     public String perfil(Model model, Authentication auth) {
         User user = userService.findByEmail(auth.getName());
         model.addAttribute("user", user);
-
-        // MODIFICADO: También en perfil para que vean las etiquetas creadas por otros
         List<String> listaTotal = obtenerInteresesCombinados();
         model.addAttribute("listaIntereses", listaTotal);
-
         boolean esCustom = user.getInteres() != null && !listaTotal.contains(user.getInteres());
-        // Nota: Si acabamos de añadir el interés a la lista "oficial" vía BD, esCustom será false,
-        // lo cual es correcto porque ya aparecerá en el desplegable.
         model.addAttribute("esInteresCustom", esCustom);
-
         return "perfil";
     }
 
+    // Procesar actualización de perfil fotos y datos
     @PostMapping("/subir/fotos")
     public String subirFotos(@RequestParam("avatarFile") MultipartFile avatarFile,
                              @RequestParam("galeriaFiles") MultipartFile[] galeriaFiles,
@@ -146,8 +146,8 @@ public class MainController {
         user.setEdad(edad);
         user.setUbicacion(ubicacion);
 
+        // Lógica para elegir entre interés del desplegable o uno nuevo escrito
         String interesFinal = null;
-
         if ("OTRO".equals(interesSeleccion) && interesNuevo != null && !interesNuevo.trim().isEmpty()) {
             interesFinal = interesNuevo;
         } else if (esInteresPersonalizado(interesSeleccion, interesNuevo)) {
@@ -155,17 +155,17 @@ public class MainController {
         } else {
             interesFinal = interesSeleccion;
         }
-
         if ("OTRO".equals(interesFinal)) interesFinal = null;
-
         user.setInteres(interesFinal);
 
+        // Subida de Avatar
         if (!avatarFile.isEmpty()) {
             String imgName = "avatar-" + user.getId() + "-" + System.currentTimeMillis() + ".png";
             fileProcessingService.uploadFile(avatarFile, imgName);
             user.setAvatar(imgName);
         }
 
+        // Subida de Galería
         if (galeriaFiles != null && galeriaFiles.length > 0) {
             for (MultipartFile fichero : galeriaFiles) {
                 if (!fichero.isEmpty()) {
@@ -185,7 +185,7 @@ public class MainController {
         userService.save(user);
         return "redirect:/perfil?success";
     }
-
+    //Guardar el nuevo interes creado
     private boolean esInteresPersonalizado(String seleccion, String nuevo) {
         return (seleccion == null || seleccion.isEmpty()) && (nuevo != null && !nuevo.isEmpty());
     }
@@ -227,4 +227,18 @@ public class MainController {
         model.addAttribute("estado", estado);
         return "usuario";
     }
+
+    @GetMapping("/usuario/{id}/compartir")
+    public String compartirPerfil(@PathVariable Long id, Authentication auth) {
+        // Lógica simple: Enviar un correo fijo a ti mismo o al usuario logueado
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("noreply@tinder.com");
+        message.setTo(auth.getName()); // Se lo envía a quien está logueado
+        message.setSubject("¡Mira este perfil de Tinder!");
+        message.setText("He encontrado un perfil interesante: http://localhost:8080/usuario/" + id);
+        emailSender.send(message);
+
+        return "redirect:/usuario/" + id + "?compartido=true";
+    }
+
 }

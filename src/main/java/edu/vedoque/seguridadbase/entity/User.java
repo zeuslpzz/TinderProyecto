@@ -8,21 +8,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
+@Table(name="users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long Id;
 
     private String name;
 
-    @Column(unique = true)
+    @Column(unique=true)
     private String email;
 
     private String password;
@@ -38,15 +39,15 @@ public class User {
 
     private String interes;
 
-    // Relación con sus propias fotos
+    //Relacion con las fotos
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Foto> fotosGaleria = new ArrayList<>();
 
-    // Al usar orphanRemoval se borran sus likes automáticamente
+    //Relacion que ha dado a fotos
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<LikeFoto> likesDados = new HashSet<>();
 
-    // Relación con MatchActions
+    //Relacion con MatchActions Likes/Dislikes a usuarios
     @OneToMany(mappedBy = "emisor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MatchAction> accionesEnviadas = new ArrayList<>();
 
@@ -60,7 +61,7 @@ public class User {
     @OneToMany(mappedBy = "destinatario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mensaje> mensajesRecibidos = new ArrayList<>();
 
-    // Relación con Roles
+    // Relación con Roles (Tabla intermedia users_roles)
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_roles",
@@ -69,45 +70,91 @@ public class User {
     )
     private List<Role> roles = new ArrayList<>();
 
-    public List<Role> getRoles() { return roles; }
-    public void setRoles(List<Role> roles) { this.roles = roles; }
+    public Long getId() {
+        return Id;
+    }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public void setId(Long id) {
+        Id = id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getAvatar() { return avatar; }
-    public void setAvatar(String avatar) { this.avatar = avatar; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getBiografia() { return biografia; }
-    public void setBiografia(String biografia) { this.biografia = biografia; }
+    public String getPassword() {
+        return password;
+    }
 
-    public String getInteres() { return interes; }
-    public void setInteres(String interes) { this.interes = interes; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public List<Foto> getFotosGaleria() { return fotosGaleria; }
-    public void setFotosGaleria(List<Foto> fotosGaleria) { this.fotosGaleria = fotosGaleria; }
+    public String getAvatar() {
+        return avatar;
+    }
 
-    public Integer getEdad() { return edad; }
-    public void setEdad(Integer edad) { this.edad = edad; }
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
-    public String getUbicacion() { return ubicacion; }
-    public void setUbicacion(String ubicacion) { this.ubicacion = ubicacion; }
+    public Integer getEdad() {
+        return edad;
+    }
 
-    public List<Mensaje> getMensajesEnviados() { return mensajesEnviados; }
-    public void setMensajesEnviados(List<Mensaje> mensajesEnviados) { this.mensajesEnviados = mensajesEnviados; }
+    public void setEdad(Integer edad) {
+        this.edad = edad;
+    }
 
-    public List<Mensaje> getMensajesRecibidos() { return mensajesRecibidos; }
-    public void setMensajesRecibidos(List<Mensaje> mensajesRecibidos) { this.mensajesRecibidos = mensajesRecibidos; }
+    public String getUbicacion() {
+        return ubicacion;
+    }
 
-    public Set<LikeFoto> getLikesDados() { return likesDados; }
-    public void setLikesDados(Set<LikeFoto> likesDados) { this.likesDados = likesDados; }
+    public void setUbicacion(String ubicacion) {
+        this.ubicacion = ubicacion;
+    }
+
+    public String getBiografia() {
+        return biografia;
+    }
+
+    public void setBiografia(String biografia) {
+        this.biografia = biografia;
+    }
+
+    public String getInteres() {
+        return interes;
+    }
+
+    public void setInteres(String interes) {
+        this.interes = interes;
+    }
+
+    public List<Foto> getFotosGaleria() {
+        return fotosGaleria;
+    }
+
+
+    public List<Mensaje> getMensajesEnviados() {
+        return mensajesEnviados;
+    }
+
+
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
 }

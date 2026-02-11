@@ -3,9 +3,11 @@ package edu.vedoque.seguridadbase.service;
 import edu.vedoque.seguridadbase.dto.UserDto;
 import edu.vedoque.seguridadbase.entity.Role;
 import edu.vedoque.seguridadbase.entity.User;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public interface UserService {
     void saveUser(UserDto userDto);
 

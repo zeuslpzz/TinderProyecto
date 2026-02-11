@@ -19,7 +19,7 @@ public interface MatchActionRepository extends JpaRepository<MatchAction, Long> 
     @Query("SELECT COUNT(m) FROM MatchAction m WHERE m.emisor = :emisor AND m.receptor = :receptor AND m.leGusta = true")
     long countLikesRecibidos(@Param("receptor") User receptor, @Param("emisor") User emisor);
 
-    // Métodos para borrar historial de chat
+    // Métodos para borrar historial de chat cuando se borra usuario
     void deleteByEmisor(User emisor);
     void deleteByReceptor(User receptor);
 }

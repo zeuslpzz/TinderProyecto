@@ -35,6 +35,7 @@ public class SpringSecurity {
                                 .requestMatchers("/perfil/**").authenticated()
                                 .requestMatchers("/subir/**").authenticated()
                                 .requestMatchers("/usuario/**").authenticated()
+                                .requestMatchers("/equipo/**").permitAll()
 
                                 // Cualquier otra url que no haya puesto arriba obligo a que esté autenticada por seguridad
                                 .anyRequest().authenticated()

@@ -24,8 +24,7 @@ public class FileProcessingController {
         return new ResponseEntity<>(fileProcessingService.fileList(), HttpStatus.OK);
     }
 
-    // Este método es para mostrar las fotos
-    // Busca el archivo y lo devuelve como un flujo de datos stream
+    // Sirve la imagen para que se vea en el navegador
     @GetMapping(value = "/download/{name}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> downloadFile(@PathVariable(value = "name") String fileName) {
         Resource file = fileProcessingService.downloadFile(fileName);
@@ -38,7 +37,7 @@ public class FileProcessingController {
         }
     }
 
-    // Método para subir archivos desde formulario
+    // Sube una imagen
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestBody MultipartFile file) {
         // Intento guardar el archivo y recojo el estado que me devuelve el servicio

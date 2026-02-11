@@ -23,13 +23,13 @@ public class AuthController {
         this.userService = userService;
     }
 
-    // Método sencillo que solo carga la vista del formulario de inicio de sesión cuando alguien entra en la ruta login
+    // Muestra la página de Login
     @GetMapping("/login")
     public String loginForm() {
         return "login";
     }
 
-    // Aquí preparo el formulario de registro enviando un objeto vacío para que el usuario pueda rellenar sus datos
+    // Muestra el formulario de Registro
     @GetMapping("/register")
     public String showRegistrationForm(Model model){
         UserDto user = new UserDto();
@@ -37,7 +37,7 @@ public class AuthController {
         return "register";
     }
 
-    // Este es el método importante donde proceso el registro cuando le dan al botón de enviar
+    // Procesa el Registro cuando le das a registrarse
     @PostMapping("/register/save")
     public String registration(@Valid @ModelAttribute("user") UserDto user,
                                BindingResult result,

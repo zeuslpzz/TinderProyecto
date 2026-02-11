@@ -31,7 +31,7 @@ public class ChatController {
     @Autowired
     private MatchActionRepository matchActionRepository;
 
-    // Este método prepara la pantalla del chat cargando el historial de conversación
+    //Ver el historial de mensajes (chat) con la persona
     @GetMapping("/{id}")
     public String verChat(@PathVariable("id") Long idUsuarioDestino, Model model, Authentication auth) {
         // Saco mi usuario de la sesión y busco al usuario con el que quiero hablar por su id
@@ -79,7 +79,7 @@ public class ChatController {
         return "redirect:/chat/" + idDestino;
     }
 
-    // He añadido aquí también la opción de deshacer el match por si quieres borrar a alguien directamente desde el chat
+    //Deshacer match con alguien desde el chat
     @PostMapping("/unmatch/{id}")
     public String deshacerMatch(@PathVariable("id") Long idOtroUsuario, Authentication auth) {
         User yo = userService.findByEmail(auth.getName());

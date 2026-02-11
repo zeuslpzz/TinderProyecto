@@ -16,7 +16,7 @@ public class Foto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long Id;
 
     private String nombreArchivo;
 
@@ -35,15 +35,43 @@ public class Foto {
                 .anyMatch(like -> like.getUsuario().getId().equals(u.getId()));
     }
 
-    public Set<LikeFoto> getLikesRecibidos() { return likesRecibidos; }
-    public void setLikesRecibidos(Set<LikeFoto> likesRecibidos) { this.likesRecibidos = likesRecibidos; }
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getNombreArchivo() { return nombreArchivo; }
-    public void setNombreArchivo(String nombreArchivo) { this.nombreArchivo = nombreArchivo; }
-    public int getLikes() { return likes; }
-    public void setLikes(int likes) { this.likes = likes; }
-    public User getUsuario() { return usuario; }
-    public void setUsuario(User usuario) { this.usuario = usuario; }
+    public Long getId() {
+        return Id;
+    }
 
+    public void setId(Long id) {
+        Id = id;
+    }
+
+    public String getNombreArchivo() {
+        return nombreArchivo;
+    }
+
+    public void setNombreArchivo(String nombreArchivo) {
+        this.nombreArchivo = nombreArchivo;
+    }
+
+    public int getLikes() {
+        return likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
+
+    public User getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(User usuario) {
+        this.usuario = usuario;
+    }
+
+    public Set<LikeFoto> getLikesRecibidos() {
+        return likesRecibidos;
+    }
+
+    public void setLikesRecibidos(Set<LikeFoto> likesRecibidos) {
+        this.likesRecibidos = likesRecibidos;
+    }
 }
